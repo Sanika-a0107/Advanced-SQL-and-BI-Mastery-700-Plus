@@ -1,0 +1,41 @@
+/* POWER BI TECHNICAL MASTERLOG: DAX Business Scenarios
+   Focus: Advanced Analytics, Customer Segmentation, and Revenue Variance
+   Target: 10-20 LPA MNC Data Analyst Roles
+*/
+
+-- SCENARIO 1: Sales Per Capita Analysis
+-- Logic: Normalizing sales data against population metrics for regional benchmarking.
+-- Business Impact: Identifies market penetration levels across different demographic regions.
+Sales per Capita = DIVIDE(SUM(Sales[Amount]), SUM(Region[Population]))
+
+-- SCENARIO 2: Customer Retention (Repeat Purchase Analysis)
+-- Logic: Identifying revenue from loyal customers active in both current and previous years.
+-- Business Impact: Quantifies the "Stickiness" of the customer base for long-term revenue forecasting.
+Repeat Customer Sales = 
+CALCULATE(SUM(Sales[Amount]), INTERSECT(
+    VALUES(Customer[CustomerID]),
+    CALCULATETABLE(VALUES(Customer[CustomerID]), SAMEPERIODLASTYEAR('Date'[Date]))
+))
+
+-- SCENARIO 3: Operational Variance (Weekday vs Weekend)
+-- Logic: Analyzing sales performance fluctuations based on day-type.
+-- Business Impact: Optimizes staffing and supply chain resources based on temporal demand peaks.
+Weekday vs Weekend Variance = 
+CALCULATE(SUM(Sales[Amount]), FILTER('Date', 'Date'[DayOfWeek] IN {"Mon","Tue","Wed","Thu","Fri"})) -
+CALCULATE(SUM(Sales[Amount]), FILTER('Date', 'Date'[DayOfWeek] IN {"Sat","Sun"}))
+
+-- SCENARIO 4: Customer Engagement (Purchase Frequency)
+-- Logic: Calculating average transaction frequency per unique customer ID using Iterators.
+-- Business Impact: Measures customer loyalty depth and individual purchase behavior.
+Avg Purchase Frequency = AVERAGEX(VALUES(Customer[CustomerID]), COUNTROWS(Sales))
+
+-- SCENARIO 5: New Product Penetration
+-- Logic: Isolating revenue from products launched within a rolling 180-day window.
+-- Business Impact: Evaluates the success of R&D and marketing efforts for recent launches.
+New Product Sales = 
+CALCULATE(SUM(Sales[Amount]), FILTER(Products, Products[LaunchDate] >= TODAY()-180))
+
+-- SCENARIO 6: Revenue Ranking
+-- Logic: Assigning dynamic ranks to customers based on total sales contribution.
+-- Business Impact: Identifies "Tier-1" customers for targeted VIP retention strategies.
+Customer Rank = RANKX(ALL(Customer), [Total Sales], , DESC)
